@@ -26,12 +26,14 @@ CREATE TABLE IF NOT EXISTS `booking` (
   `phone` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `address` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numberOfPpl` int(11) DEFAULT NULL,
   `allItems` varchar(5000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'item:quantity:price, item:quantity:price.....',
   `allHall` varchar(5000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'hall:price, hall:price',
-  `booking_price` bigint(20) DEFAULT NULL,
-  `catering_price` bigint(20) DEFAULT NULL,
-  `lightSound` bigint(20) DEFAULT NULL,
-  `other_price` bigint(20) DEFAULT NULL,
+  `damage` bigint(20) DEFAULT NULL,
+  `gst` bigint(20) DEFAULT NULL,
+  `service_tax` bigint(20) DEFAULT NULL,
+  `total` bigint(20) DEFAULT NULL,
+  `paid` bigint(20) DEFAULT NULL,
   `invoice_num` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `gst_num` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `created_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -39,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `booking` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `bookingid` (`bookingid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- Data exporting was unselected.
 -- Dumping structure for table eventdata.hall
@@ -48,6 +50,7 @@ CREATE TABLE IF NOT EXISTS `hall` (
   `hallid` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `status` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `type` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'AC/NON-AC',
   `description` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `price` bigint(20) DEFAULT NULL,
   `capacity` bigint(20) DEFAULT NULL,
@@ -56,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `hall` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `bookingid` (`hallid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- Data exporting was unselected.
 -- Dumping structure for table eventdata.item
@@ -64,13 +67,14 @@ CREATE TABLE IF NOT EXISTS `item` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `itemid` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `price` bigint(20) NOT NULL,
   `status` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'active/not-active',
   `created_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `itemid` (`itemid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- Data exporting was unselected.
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
