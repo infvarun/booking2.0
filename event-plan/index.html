@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/animate.css">
+    <link href="assets/font-awesome/css/fontawesome-all.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="assets/datepicker/css/gijgo.min.css" rel="stylesheet">
+    <script src="node_modules/axios/dist/axios.min.js"></script>
+    
+    <title></title>
+  </head>
+  <body>
+    
+    <header>
+        <div class="collapse bg-dark" id="navbarHeader">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-8 col-md-7 py-4">
+                <h4 class="text-white">About</h4>
+                <p class="text-muted">Hi, I am Varun. I love Web development. I like JavaScript and learning ES6 specs, this is a demo project ideated and built from the scratch using HTML5, CSS3, JS and Bootstrap. This is an event planner app for current year.</p>
+              </div>
+              <div class="col-sm-4 offset-md-1 py-4">
+                <h4 class="text-white">Contact</h4>
+                <ul class="list-unstyled">
+                  <li><a href="https://github.com/infvarun/event-planner" class="text-white">See it on GitHub</a></li>
+                  <li><a href="https://www.facebook.com/varun24x7" class="text-white">Facebook</a></li>
+                  <li><a href="mailto: 24x7varun@gmail.com" class="text-white">Email me</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="navbar navbar-dark bg-dark box-shadow">
+          <div class="container d-flex justify-content-between">
+            <a href="#" class="navbar-brand d-flex align-items-center">
+              🚀 <strong>Event Planner</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+  
+      <main role="main">
+
+        <section class="jumbotron  back-mesh text-center">
+          <div class="container">
+            <h1 class="jumbotron-heading">Booking Dashboard</h1>
+            <p class="lead text-muted">Manage all your bookings from one place, create new bookings, create new halls & items and generate print ready Invoices.</p>
+            <p>
+              <button class="btn btn-success my-2" data-toggle="modal" data-target="#bookingModal" onclick="initBookingModel()">New Booking</button>
+              <button style="color: rgba(5, 102, 5, 0.74)" class="btn btn-outline-warning my-2" data-toggle="modal" data-target="#hallModal">Create Hall</button>
+              <button style="color: rgba(5, 102, 5, 0.74)" class="btn btn-outline-warning my-2" data-toggle="modal" data-target="#itemModal">Create Item</button>
+            </p>
+          </div>
+        </section>
+
+        <div class="album py-5 bg-light">
+          <div class="container">
+  
+            <div class="row" id="calCard"></div>
+
+          </div>
+        </div>
+  
+      </main>
+  
+      <footer class="text-muted">
+        <div class="container">
+          <p class="float-right">
+            <a href="#">Back to top</a>
+          </p>
+          <p>Event Planner is &copy; 24x7Varun.com</p>
+        </div>
+      </footer>
+
+
+
+<!-- Hall Modal -->
+<div class="modal fade" id="hallModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header back-mesh">
+        <h5 class="modal-title" id="exampleModalLabel1">Hall</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="hall_modal_body">
+          <form>
+              <input type="text" class="form-control" id="hall_id" hidden>
+              <div class="form-group" id="hall_name_group">
+                <label for="hall_name" class="col-form-label">Hall Name</label>
+                <input type="text" class="form-control" id="hall_name" required>
+                <div id="hall_name_error" class="text-danger"></div>
+              </div>
+              <div class="form-group">
+                <p>Status</p>
+                <div class="radio-item">
+                  <input type="radio" id="hallRadio1" name="hallRadio" value="Clean" checked>
+                  <label for="hallRadio1">Clean</label>
+                </div>
+                <div class="radio-item">
+                  <input type="radio" id="hallRadio2" name="hallRadio" value="Dirty">
+                  <label for="hallRadio2">Dirty</label>
+                </div>
+                <div class="radio-item">
+                  <input type="radio" id="hallRadio3" name="hallRadio" value="Under Repair">
+                  <label for="hallRadio3">Under Repair</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <p>Cooling</p>
+                <div class="radio-item">
+                  <input type="radio" id="hallCooling1" name="hallCooling" value="AC">
+                  <label for="hallCooling1">Air-Conditioned</label>
+                </div>
+                <div class="radio-item">
+                  <input type="radio" id="hallCooling2" name="hallCooling" value="Non-AC" checked>
+                  <label for="hallCooling2">Normal</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="hall_desc" class="col-form-label">Description</label>
+                <input type="text" class="form-control" id="hall_desc">
+              </div>
+              <div class="form-row">
+                <div class="col-md-6 mb-3">
+                  <label for="hall_price" class="col-form-label">Rate</label>
+                  <input type="number" class="form-control" id="hall_price">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="hall_cap" class="col-form-label">Capacity</label>
+                  <input type="number" class="form-control" id="hall_cap">
+                </div>
+              </div>
+            </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="save_hall">Create Hall</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Item Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header back-mesh">
+        <h5 class="modal-title" id="exampleModalLabel2">Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="item_modal_body">
+          <form>
+              <input type="text" class="form-control" id="item_id" hidden>
+              <div class="form-group" id="item_name_group">
+                <label for="item_name" class="col-form-label">Item Name</label>
+                <input type="text" class="form-control" id="item_name">
+                <div id="item_name_error" class="text-danger"></div>
+              </div>
+              <div class="form-group">
+                <p>Status</p>
+                <div class="radio-item2">
+                    <input type="radio" id="itemRadio1" name="itemRadio" value="Active" checked>
+                    <label for="itemRadio1">Active</label>
+                </div>
+                <div class="radio-item2">
+                    <input type="radio" id="itemRadio2" name="itemRadio" value="Inactive">
+                    <label for="itemRadio2">Inactive</label>
+                </div>
+              </div>
+              <div class="form-group">
+                  <label for="item_price" class="col-form-label">Rate</label>
+                  <input type="number" class="form-control" id="item_price">
+                </div>
+            </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        <button type="button" id="save_item" class="btn btn-success">Create Item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- BOOKING Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel3" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header back-mesh">
+        <h5 class="modal-title" id="exampleModalLabel3">Booking</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="booking_modal_body">
+          <form>
+              <input type="text" class="form-control" id="booking_id" hidden>
+              <div class="form-row" id="invoice_detail">
+                <div class="col-md-4 mb-2">
+                  <label for="invoice_num" class="col-form-label">Invoice No.</label>
+                  <input type="text" class="form-control" id="invoice_num" >
+                </div>
+                <div class="col-md-4 mb-2">
+                  <label for="gst_num" class="col-form-label">GST No.</label>
+                  <input type="text" class="form-control" id="gst_num" >
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label for="no_ppl" class="col-form-label">Total People (approx.)</label>
+                    <input type="number" class="form-control" id="no_ppl" value="0" min="0">
+                </div>
+              </div>
+              <div class="form-group" id="booking_name_group">
+                <label for="cust_name" class="col-form-label">Customer Name</label>
+                <input type="text" class="form-control" id="cust_name" required>
+                <div id="cust_name_error" class="text-danger"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="hallSelect">State</label>
+                <select id="hallSelect" class="form-control">
+                  <!--Populated dynamically-->
+                </select>
+              </div>
+
+              <div class="form-row">
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="col-form-label">From Date</label>
+                  <input type="text" class="form-control" id="startDate" value="" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="endDate" class="col-form-label">To Date</label>
+                  <input type="text" class="form-control" id="endDate" value="" readonly>
+                </div>
+              </div>
+              <hr>
+              <div class="form-row text-success">
+                <div class="form-group col-md-3 mb-2">
+                  <label class="col-form-label">Item</label>
+                </div>
+                <div class="form-group col-md-3 mb-2" style="text-align: center">
+                  <label class="col-form-label">Price</label>
+                </div>
+                <div class="form-group col-md-3 mb-2" style="text-align: center">
+                  <label class="col-form-label">Quantity</label>
+                </div>
+                <div class="form-group col-md-3 mb-2" style="text-align: center">
+                  <label class="col-form-label">Total</label>
+                </div>
+              </div>
+              <div id="items">
+                <!--Populate item rows dynamically-->
+              </div>
+              <hr>
+              <div class="form-row" id="other_price">
+                  <div class="col-md-4 mb-2">
+                    <label for="damage" class="col-form-label">Damage</label>
+                    <input type="number" class="form-control" id="damage" value="0" min="0">
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <label for="gst" class="col-form-label">GST</label>
+                    <input type="number" class="form-control" id="gst" value="0" min="0">
+                  </div>
+                  <div class="col-md-4 mb-2">
+                      <label for="service_tax" class="col-form-label">Service Tax</label>
+                      <input type="number" class="form-control" id="service_tax" value="0" min="0">
+                  </div>
+              </div>
+
+              <div class="form-group">
+                <label for="cust_addr" class="col-form-label">Address</label>
+                <input type="text" class="form-control" id="cust_addr">
+              </div>
+
+              <div class="form-row">
+                <div class="col-md-6 mb-3">
+                  <label for="mobile" class="col-form-label">Mobile</label>
+                  <input type="number" class="form-control" id="mobile">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="email" class="col-form-label">Email</label>
+                  <input type="email" class="form-control" id="email">
+                </div>
+              </div>
+
+              <div class="form-row">
+                  <div class="col-md-6 mb-3">
+                      <label for="total_bill" class="col-form-label">Total Bill</label>
+                      <input type="text" class="form-control" id="total_bill" value="0" readonly>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                      <label for="paid" class="col-form-label">Paid Amount</label>
+                      <input type="number" class="form-control" id="paid" value="0" min="0">
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label for="due" class="col-form-label">Due Amount</label>
+                  <input type="text" class="form-control" id="due" value="0" readonly>
+              </div>
+            </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="save_booking">Create Hall</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    
+    <!-- Main JavaScript -->
+    <script src="index.js"></script>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="assets/js/jquery-3.3.1.slim.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/moment.js"></script>
+    <script src="assets/datepicker/js/gijgo.min.js"></script>
+    <!-- Secondary JavaScript -->
+    <script src="createHall.js"></script>
+    <script src="createItem.js"></script>
+    <script src="createBooking.js"></script>
+
+
+    <script>
+      var today = new Date(new Date().getDate(), new Date().getMonth(), new Date().getFullYear());
+      $('#startDate').datepicker({
+          uiLibrary: 'bootstrap4',
+          iconsLibrary: 'fontawesome',
+          minDate: today,
+          format: 'dd-mmm-yyyy',
+          maxDate: function () {
+              return $('#endDate').val();
+          }
+      });
+      $('#endDate').datepicker({
+          uiLibrary: 'bootstrap4',
+          iconsLibrary: 'fontawesome',
+          format: 'dd-mmm-yyyy',
+          minDate: function () {
+              return $('#startDate').val();
+          }
+      });
+  </script>
+
+  </body>
+</html>
