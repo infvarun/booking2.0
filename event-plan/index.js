@@ -17,9 +17,10 @@ let totalDamage = 0;
 let totalServiceTax = 0;
 let totalPaid = 0;
 let itemListDetailForDB = []; // to save in db just do join(',')
+const itemListDetailMap = new Map();
 
 class Booking {
-    constructor(id,bookingid,customer,fromdate,todate,phone,total,paid,createdOn,status,address,mail) {
+    constructor(id,bookingid,customer,fromdate,todate,phone,total,paid,createdOn,status,address,mail,item,hall,damage,gst,serviceTax) {
         this.id = id;
         this.bookingid = bookingid;
         this.customer =customer;
@@ -32,6 +33,11 @@ class Booking {
         this.status = status;
         this.address = address;
         this.mail = mail;
+        this.item = item;
+        this.hall = hall;
+        this.damage = damage;
+        this.gst = gst;
+        this.serviceTax = serviceTax;
     }
 
 }
@@ -44,9 +50,13 @@ const invoice = {
     mail : '',
     phone : '',
     payStatus : '',
-    items : [],
-    halls : [],
-    total : 0
+    items : '',
+    halls : '',
+    total : 0,
+    damage : 0,
+    gst : 0,
+    serviceTax : 0,
+    paid : 0
 }
 
 /**
@@ -135,7 +145,7 @@ function getBookingCardStart(booking) {
             <div class="btn-group">
                 <a href="invoice.html" id="bill-${booking.id}" type="button" class="btn btn-sm btn-outline-primary">Bill</a>
                 <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                <button type="button" class="btn btn-sm btn-outline-danger">Delete</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${booking.id})">Delete</button>
             </div>
             <small class="text-muted">${booking.createdOn}</small>
         </div>
@@ -184,9 +194,13 @@ function setInvoice(booking) {
     invoice.mail = booking.mail;
     invoice.phone = booking.phone;
     invoice.payStatus = ((booking.total - booking.paid) === 0) ? '<span class="badge badge-success">Paid</span>' : '<span class="badge badge-danger">Pending</span>'; 
-    invoice.items = [];
-    invoice.halls = [];
+    invoice.items = booking.item;
+    invoice.halls = booking.hall;
     invoice.total = 0;
+    invoice.damage = booking.damage;
+    invoice.gst = booking.gst;
+    invoice.serviceTax = booking.serviceTax;
+    invoice.paid = booking.paid;
 
     localStorage.invoiceData = JSON.stringify(invoice);
 }
@@ -212,7 +226,12 @@ async function initBookingInDOM() {
             moment(res.created_on).format('DD-MMM-YYYY'),
             (isGreaterThanNow(res.todate)) ? '<span style="cursor:pointer" title="New">✔</span>' : '<span style="cursor:pointer" title="Over">✖</span>', 
             res.address, 
-            res.email)
+            res.email,
+            res.allItems,
+            res.allHall,
+            res.damage,
+            res.gst,
+            res.service_tax)
         );
     });
     return allBookings;
@@ -336,16 +355,18 @@ async function addItemRowsInBooking() {
         document.getElementById('item_total_'+currentIndex).value = parseInt(price)*parseInt(quant);
 
         // add all item bill to total
-        itemListDetailForDB = [];
+        
         let totalItemBill = 0;
         for(let i=0; i < totalItems; i++) {
-            if(document.getElementById('item_total_'+i).value) {
+            if(i == currentIndex) {
                 totalItemBill += parseInt(document.getElementById('item_total_'+i).value);
-                itemListDetailForDB.push[
-                    document.getElementById('item_name_'+i).value+':'+
-                    document.getElementById('item_quant_'+i).value+':'+
-                    document.getElementById('item_price_'+i).value
-                ];
+
+                if(parseInt(document.getElementById('item_total_'+i).value) == 0) {
+                    itemListDetailMap.delete(currentIndex);
+                } else {
+                    itemListDetailMap.set(currentIndex, document.getElementById('item_name_'+i).value+':'+document.getElementById('item_quant_'+i).value+':'+document.getElementById('item_price_'+i).value);
+                }
+            
             }
         }
         // update global totalItemPrice with this
@@ -427,24 +448,18 @@ function totalPaidHandler() {
 }
 
 /**
- * Test function to test DOM componenets 
+ * Delete booking when delete is clicked
+ * @param {*} id 
  */
-function testDOM() {
-    return [
-        new Booking(101,'B-2018-june-11-12-04','Customer First','20-May-2018','22-May-2018','8861728005',200000, 150000,'June-11-2018','<span style="cursor:pointer" title="New">✔</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust0@gmail.com'),
+window.deleteBooking = function deleteBooking(id) {
+    const delConfirm = confirm('Delete this booking?');
+    if(delConfirm) {
+        const delUrl = `${base_url}/booking/${id}`;
 
-        new Booking(102,'B-2018-june-11-12-05','Customer Sec','23-May-2018','25-May-2018','9061728555',500000, 250000,'June-08-2018','<span title="Over">✔</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust1@gmail.com'),
-
-        new Booking(103,'B-2018-june-11-12-06','Customer Third','23-May-2018','25-May-2018','9061728555',200000, 200000,'June-08-2018','<span title="Over">✖</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust2@gmail.com'),
-
-        new Booking(104,'B-2018-june-11-12-07','Obama One','22-May-2018','25-May-2018','9061728555',300000, 150000,'June-08-2018','<span title="Over">✔</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust3@gmail.com'),
-
-        new Booking(105,'B-2018-june-11-12-08','Trump Trump','24-May-2018','25-May-2018','9061728555',50000, 10000,'June-08-2018','<span title="New">✖</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust4@gmail.com'), 
-
-        new Booking(106,'B-2018-june-11-12-09','Varun Ved','28-May-2018','30-May-2018','9061728555',300000, 300000,'June-08-2018','<span title="New">✔</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust5@gmail.com'),
-
-        new Booking(107,'B-2018-june-11-12-10','Selva Kumar','30-May-2018','02-June-2018','9061728555',60000,50000,'June-08-2018','<span title="New">✔</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust6@gmail.com'),
-
-        new Booking(108,'B-2018-june-11-12-11','Navin Singh','23-May-2018','25-May-2018','9061728555',5000,5000,'June-08-2018', '<span title="Over">✖</span>', '301, 8th Cross Road Electronic city, Bangalore', 'cust8@gmail.com'),    
-    ];
+        axios.delete(delUrl, {
+            params: { id: id }
+        }).then(function(response){
+            document.location.reload();
+        });;
+    }
 }

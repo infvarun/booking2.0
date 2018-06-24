@@ -22,7 +22,12 @@ function bookingFormSubmit() {
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
 
-    const itemListDetails = itemListDetailForDB.join(',');
+    let itemListDetails = '';
+    itemListDetailMap.forEach((val)=>{
+        itemListDetails += val + ',';
+    });
+    // remove last colon
+    itemListDetails = itemListDetails.replace(/\,$/, '');
 
     const gst =  totalGST;
     const damage = totalDamage;
