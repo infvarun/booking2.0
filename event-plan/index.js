@@ -358,9 +358,8 @@ async function addItemRowsInBooking() {
         
         let totalItemBill = 0;
         for(let i=0; i < totalItems; i++) {
+            totalItemBill += (parseInt(document.getElementById('item_quant_'+i).value) * parseInt(document.getElementById('item_price_'+i).value));
             if(i == currentIndex) {
-                totalItemBill += parseInt(document.getElementById('item_total_'+i).value);
-
                 if(parseInt(document.getElementById('item_total_'+i).value) == 0) {
                     itemListDetailMap.delete(currentIndex);
                 } else {
