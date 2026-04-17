@@ -2,7 +2,12 @@ import { format } from 'date-fns'
 
 export function generateId(type) {
   const now = new Date()
-  return `${type}-${format(now, 'yyyy-MMMM-dd-HH-mm-ss')}`
+  const timestamp = format(now, 'yyyy-MMMM-dd-HH-mm-ss-SSS')
+  const randomSuffix = globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID().split('-')[0]
+    : Math.random().toString(36).slice(2, 10)
+
+  return `${type}-${timestamp}-${randomSuffix}`
 }
 
 export function formatCurrency(amount) {
