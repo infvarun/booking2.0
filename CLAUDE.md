@@ -49,20 +49,27 @@ booking2.0/
 │   ├── requirements.txt
 │   └── .env.example        # DATABASE_URL env var
 │
-└── frontend/               # React 18 + Vite + Bootstrap 5
+└── frontend/               # React 18 + Vite + Tailwind CSS 3
     ├── vite.config.js      # Proxies /api → http://localhost:8080
+    ├── tailwind.config.js  # Content paths for Tailwind purge
+    ├── postcss.config.js
     ├── src/
-    │   ├── App.jsx             # Routes: / (Dashboard), /invoice (Invoice)
+    │   ├── index.css           # Tailwind directives + react-datepicker theme overrides
+    │   ├── App.jsx             # Routes: / | /halls | /items (Layout) + /invoice (standalone)
     │   ├── api/client.js       # Axios wrappers: halls, items, bookings objects
     │   ├── utils/helpers.js    # generateId, formatCurrency, toSQLDatetime, parseItems, parseHall
-    │   ├── pages/
-    │   │   ├── Dashboard.jsx   # Booking list + action buttons to open modals
-    │   │   └── Invoice.jsx     # Print-ready invoice, receives booking via router state
-    │   └── components/
-    │       ├── BookingModal.jsx # Create/edit booking — most complex component
-    │       ├── HallModal.jsx
-    │       ├── ItemModal.jsx
-    │       └── BookingCard.jsx
+    │   ├── components/
+    │   │   ├── Layout.jsx      # Sidebar + <Outlet /> shell
+    │   │   ├── Sidebar.jsx     # Dark nav: Bookings / Halls / Items with NavLink active states
+    │   │   ├── BookingModal.jsx # Create/edit booking — most complex component
+    │   │   ├── HallModal.jsx   # Create/edit hall (hall prop = edit mode)
+    │   │   ├── ItemModal.jsx   # Create/edit item (item prop = edit mode)
+    │   │   └── BookingCard.jsx
+    │   └── pages/
+    │       ├── Dashboard.jsx   # Stats cards, search/filter, booking grid, skeleton loaders
+    │       ├── HallsPage.jsx   # Hall CRUD with inline edit/delete cards
+    │       ├── ItemsPage.jsx   # Item CRUD with inline edit/delete cards
+    │       └── Invoice.jsx     # Print-ready invoice, receives booking via router state
 ```
 
 ### API Design
