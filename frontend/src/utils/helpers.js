@@ -11,7 +11,9 @@ export function generateId(type) {
 }
 
 export function formatCurrency(amount) {
-  return `₹${(amount || 0).toLocaleString('en-IN')}`
+  const numericAmount = Number(amount)
+  const safeAmount = Number.isFinite(numericAmount) ? numericAmount : 0
+  return `₹${safeAmount.toLocaleString('en-IN')}`
 }
 
 export function toSQLDatetime(date) {
