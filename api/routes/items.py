@@ -44,6 +44,9 @@ def update_item(item_id: str, item: schemas.ItemUpdate, db: Session = Depends(ge
 
 @router.delete("/item/{item_id}", response_model=List[schemas.ItemOut])
 def delete_item(item_id: str, db: Session = Depends(get_db)):
-    db.query(models.Item).filter(models.Item.itemid == item_id).delete()
+    db_item = db.query(models.Item).filter(models.Item.itemid == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db.delete(db_item)
     db.commit()
     return db.query(models.Item).order_by(models.Item.created_on).all()
