@@ -44,6 +44,9 @@ def update_booking(booking_id: str, booking: schemas.BookingUpdate, db: Session 
 
 @router.delete("/booking/{booking_id}", response_model=List[schemas.BookingOut])
 def delete_booking(booking_id: str, db: Session = Depends(get_db)):
-    db.query(models.Booking).filter(models.Booking.bookingid == booking_id).delete()
+    db_booking = db.query(models.Booking).filter(models.Booking.bookingid == booking_id).first()
+    if not db_booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    db.delete(db_booking)
     db.commit()
     return db.query(models.Booking).order_by(models.Booking.created_on.desc()).all()
