@@ -44,6 +44,9 @@ def update_hall(hall_id: str, hall: schemas.HallUpdate, db: Session = Depends(ge
 
 @router.delete("/hall/{hall_id}", response_model=List[schemas.HallOut])
 def delete_hall(hall_id: str, db: Session = Depends(get_db)):
-    db.query(models.Hall).filter(models.Hall.hallid == hall_id).delete()
+    db_hall = db.query(models.Hall).filter(models.Hall.hallid == hall_id).first()
+    if not db_hall:
+        raise HTTPException(status_code=404, detail="Hall not found")
+    db.delete(db_hall)
     db.commit()
     return db.query(models.Hall).order_by(models.Hall.created_on).all()
