@@ -4,29 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Event booking management system — a monorepo with a PHP REST API backend and a vanilla JS frontend. Manages halls, catering items, bookings, and invoice generation for event venues.
+Event booking management system — a monorepo with a Python/FastAPI REST API backend and a React/Vite frontend. Manages halls, catering items, bookings, and invoice generation for event venues.
+
+The legacy PHP + vanilla JS implementation lives in `deo-api/` and `event-plan/` and can be ignored for new development.
 
 ## Commands
 
-### Backend (`deo-api/`)
+### Backend (`api/`)
 ```bash
-composer install          # Install PHP dependencies
-php -S localhost:8080 -t public   # Start dev server
-composer test             # Run PHPUnit tests
-phpunit                   # Run tests directly
-docker-compose up         # Start via Docker (PHP 7 Alpine)
+pip install -r requirements.txt    # Install dependencies
+cp .env.example .env               # Configure DB URL
+uvicorn main:app --reload --port 8080   # Start dev server
+# API docs auto-generated at http://localhost:8080/docs
 ```
 
-### Frontend (`event-plan/`)
+### Frontend (`frontend/`)
 ```bash
-# No build step — serve files directly
-php -S localhost:8081     # or
-python -m http.server 8081
+npm install       # Install dependencies
+npm run dev       # Start Vite dev server on http://localhost:3000
+npm run build     # Production build → dist/
 ```
 
 ### Database
 ```bash
-mysql -u root < deo-api/db_script.sql   # Initialize schema
+mysql -u root < deo-api/db_script.sql   # Initialize schema (creates eventdata DB)
+# Note: db_script.sql schema is outdated — SQLAlchemy will create correct columns
+# on first API startup via Base.metadata.create_all()
 ```
 
 ## Architecture
@@ -34,54 +37,71 @@ mysql -u root < deo-api/db_script.sql   # Initialize schema
 ### Monorepo Structure
 ```
 booking2.0/
-├── deo-api/          # PHP 7 + Slim Framework 3 REST API
-│   ├── public/       # Web root — index.php bootstraps Slim
-│   ├── src/
-│   │   ├── routes.php        # All CRUD endpoints (halls, items, bookings)
-│   │   ├── dependencies.php  # DI container: logger, PDO, renderer
-│   │   ├── settings.php      # DB config, Monolog settings
-│   │   └── middleware.php    # Slim middleware config
-│   ├── db_script.sql         # MySQL schema (eventdata DB)
-│   └── logs/app.log          # Runtime error log
+├── api/                    # Python 3 + FastAPI backend
+│   ├── main.py             # App entry, CORS, router registration (prefix /api)
+│   ├── database.py         # SQLAlchemy engine + get_db() dependency
+│   ├── models.py           # ORM models: Hall, Item, Booking
+│   ├── schemas.py          # Pydantic schemas (Create/Update/Out per resource)
+│   ├── routes/
+│   │   ├── halls.py        # CRUD: /api/halls, /api/hall/{id}
+│   │   ├── items.py        # CRUD: /api/items, /api/item/{id}
+│   │   └── bookings.py     # CRUD: /api/bookings, /api/booking/{id}
+│   ├── requirements.txt
+│   └── .env.example        # DATABASE_URL env var
 │
-└── event-plan/       # Vanilla JS + Bootstrap 4 + Axios frontend
-    ├── index.html        # Main dashboard (lists bookings, entry point)
-    ├── invoice.html      # Print-ready invoice page
-    ├── index.js          # Shared globals, Booking/ItemRows classes, base API helpers
-    ├── createBooking.js  # Booking form logic + GST/total calculations
-    ├── createHall.js     # Hall creation form
-    ├── createItem.js     # Item creation form
-    └── invoice.js        # Invoice rendering + print
+└── frontend/               # React 18 + Vite + Bootstrap 5
+    ├── vite.config.js      # Proxies /api → http://localhost:8080
+    ├── src/
+    │   ├── App.jsx             # Routes: / (Dashboard), /invoice (Invoice)
+    │   ├── api/client.js       # Axios wrappers: halls, items, bookings objects
+    │   ├── utils/helpers.js    # generateId, formatCurrency, toSQLDatetime, parseItems, parseHall
+    │   ├── pages/
+    │   │   ├── Dashboard.jsx   # Booking list + action buttons to open modals
+    │   │   └── Invoice.jsx     # Print-ready invoice, receives booking via router state
+    │   └── components/
+    │       ├── BookingModal.jsx # Create/edit booking — most complex component
+    │       ├── HallModal.jsx
+    │       ├── ItemModal.jsx
+    │       └── BookingCard.jsx
 ```
 
 ### API Design
-All endpoints live in `deo-api/src/routes.php`. Pattern: `GET/POST/PUT/DELETE /{resource}[/{id}]` for `halls`, `items`, and `bookings`.
-
-Base URL hardcoded in `event-plan/index.js`:
-```js
-const base_url = 'http://localhost:8080/deo-api/public/';
-```
-
-Frontend makes Axios calls to this base URL. No auth layer exists.
+All endpoints are prefixed `/api` in FastAPI and proxied transparently by Vite in dev.  
+Pattern: `GET/POST/PUT/DELETE /api/{resource}[/{id}]` for `halls`, `items`, `bookings`.  
+DELETE returns the remaining records list (matches original PHP behavior).
 
 ### Data Storage Quirk
 `booking` table stores hall and item selections as denormalized comma-separated strings:
-- `allHall`: `"Grand Hall:75000"`
-- `allItems`: `"Pillow:10:500,Bed-Sheet:20:200"` (name:qty:price)
+- `allHall`: `"Grand Hall:75000"` (name:price — use `lastIndexOf(':')` to parse, names may contain colons)
+- `allItems`: `"Pillow:10:500,Bed-Sheet:20:200"` (name:qty:unitPrice per item)
 
-Parsing these strings happens in the frontend (`invoice.js`, `createBooking.js`).
+`parseItems` and `parseHall` in `utils/helpers.js` handle this parsing. The React Invoice and BookingModal components both depend on these parsers.
 
-### Frontend State
-No framework — state lives in global variables and DOM. The `Booking` and `ItemRows` classes in `index.js` are the main abstractions. jQuery is used for DOM + animations; Axios for all HTTP.
+### Booking Price Calculation
+```
+subTotal   = hallPrice + Σ(qty × unitPrice) for each item row
+total      = subTotal + damage + gst + service_tax
+due        = total - paid
+```
+Totals are derived/computed in `BookingModal.jsx`; only `total` and `paid` are persisted.
+
+### Invoice Navigation
+Invoice data is passed via React Router `state` (not localStorage):
+```js
+navigate('/invoice', { state: { booking } })  // BookingCard.jsx
+const { state } = useLocation()               // Invoice.jsx
+```
 
 ### Configuration
-- DB credentials: `deo-api/src/settings.php` (`host`, `dbname`, `user`, `pass`)
-- No `.env` file — credentials are inline PHP
+- DB URL: `api/.env` (`DATABASE_URL=mysql+pymysql://root:@localhost/eventdata`)
+- Frontend API base: Vite proxies `/api` → `http://localhost:8080` (see `vite.config.js`)
+- SQLAlchemy creates/verifies tables on startup — the legacy `db_script.sql` schema is stale
 
 ## Key Conventions
 
-- Backend returns raw JSON arrays/objects; no envelope or status wrapper
-- Booking IDs (`bookingid`) are generated client-side (random string prefixed `B`)
-- All prices stored as `BIGINT` (integers, smallest currency unit or rupees — no decimals)
-- Hall `type` field: `"A/C"` or `"non A/C"`; item `status`: `"active"` / `"not-active"`
-- Logs go to `deo-api/logs/app.log` via Monolog; check here for PDO/SQL errors
+- All API routes identified by business ID (`hallid`, `itemid`, `bookingid`), not auto-increment `id`
+- IDs generated client-side: `generateId('B')` → `"B-2026-April-17-14-30-45"`
+- All prices stored as `BIGINT` integers (rupees, no decimals)
+- Hall `type`: `"AC"` or `"Non-AC"`; item `status`: `"Active"` or `"Inactive"`
+- Only active items (`status === 'Active'`) appear in the booking form item selector
+- Pydantic v2 style (`model_config = {"from_attributes": True}`, `model_dump()`)
